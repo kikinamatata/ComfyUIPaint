@@ -469,35 +469,8 @@ class PromptServer():
         
         @routes.post("/digital-painting")
         async def post_digital_painting(request):
-            print("got digital painting")
-            json_data = await request.json()
-            client_id = json_data["client_id"]
-            image_name = json_data["image_name"]
-            user_prompt = json_data["user_prompt"]
-
-            if image_name is not None:
-                prompt = json.load(open('workflows\workflow_api.json'))
-                prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
-                prompt["12"]["inputs"]["image"] = image_name
-                if user_prompt != "":
-                    prompt["6"]["inputs"]["text"] = user_prompt
-
-                number = self.number
-                self.number += 1
-                
-                valid = execution.validate_prompt(prompt)
-                extra_data ={"client_id": client_id}
-                if valid[0]:
-                    prompt_id = str(uuid.uuid4())
-                    outputs_to_execute = valid[2]
-                    self.prompt_queue.put((number, prompt_id, prompt, extra_data, outputs_to_execute))
-                    response = {"prompt_id": prompt_id, "number": number, "node_errors": valid[3]}
-                    return web.json_response(response)
-                else:
-                    print("invalid prompt:", valid[1])
-                    return web.json_response({"error": valid[1], "node_errors": valid[3]}, status=400)
-            else:
-                return web.json_response({"error": "no client_id", "node_errors": []}, status=400)
+            server_extension = ServerExtension()
+            return await server_extension.post_digital_painting(request, self)
 
         @routes.post("/prompt")
         async def post_prompt(request):
@@ -698,3 +671,35 @@ class PromptServer():
                 traceback.print_exc()
 
         return json_data
+
+class ServerExtension:
+    async def post_digital_painting(self,request,prompt_server:PromptServer):
+        print("got digital painting")
+        json_data = await request.json()
+        client_id = json_data["client_id"]
+        image_name = json_data["image_name"]
+        user_prompt = json_data["user_prompt"]
+
+        if image_name is not None:
+            prompt = json.load(open('workflows\workflow_api.json'))
+            prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
+            prompt["12"]["inputs"]["image"] = image_name
+            if user_prompt != "":
+                prompt["6"]["inputs"]["text"] = user_prompt
+
+            number = prompt_server.number
+            prompt_server.number += 1
+            
+            valid = execution.validate_prompt(prompt)
+            extra_data ={"client_id": client_id}
+            if valid[0]:
+                prompt_id = str(uuid.uuid4())
+                outputs_to_execute = valid[2]
+                prompt_server.prompt_queue.put((number, prompt_id, prompt, extra_data, outputs_to_execute))
+                response = {"prompt_id": prompt_id, "number": number, "node_errors": valid[3]}
+                return web.json_response(response)
+            else:
+                print("invalid prompt:", valid[1])
+                return web.json_response({"error": valid[1], "node_errors": valid[3]}, status=400)
+        else:
+            return web.json_response({"error": "no client_id", "node_errors": []}, status=400)
