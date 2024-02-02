@@ -675,10 +675,18 @@ class PromptServer():
 class ServerExtension:
     async def post_digital_painting(self,request,prompt_server:PromptServer):
         print("got digital painting")
-        json_data = await request.json()
-        client_id = json_data["client_id"]
-        image_name = json_data["image_name"]
-        user_prompt = json_data["user_prompt"]
+        post = await request.post()
+        client_id = post.get("client_id")
+        user_prompt = post.get("user_prompt")
+        img = {'image': post.get("image"), 'overwrite': post.get("overwrite"), 'type': post.get("type"), 'subfolder': post.get("subfolder")}
+        resp = await self.image_upload(img)
+
+        if resp == 400:
+            return web.json_response({"error":"Image Upload Failed"},status=400)
+        
+        image_name = resp["name"]
+        response = {}
+        response["image"]=resp
 
         if image_name is not None:
             prompt = json.load(open('workflows\workflow_api.json'))
@@ -696,10 +704,69 @@ class ServerExtension:
                 prompt_id = str(uuid.uuid4())
                 outputs_to_execute = valid[2]
                 prompt_server.prompt_queue.put((number, prompt_id, prompt, extra_data, outputs_to_execute))
-                response = {"prompt_id": prompt_id, "number": number, "node_errors": valid[3]}
+                response["prompt_id"] = prompt_id
+                response["number"] = number
+                response["node_errors"] = valid[3]
                 return web.json_response(response)
             else:
                 print("invalid prompt:", valid[1])
                 return web.json_response({"error": valid[1], "node_errors": valid[3]}, status=400)
         else:
             return web.json_response({"error": "no client_id", "node_errors": []}, status=400)
+    
+    async def image_upload(self,img, image_save_function=None):
+        image = img["image"]
+        overwrite = img["overwrite"]
+
+        image_upload_type = img["type"]
+        upload_dir, image_upload_type = self.get_dir_by_type(image_upload_type)
+
+        if image and image.file:
+            filename = image.filename
+            if not filename:
+                return 400
+
+            subfolder = img["subfolder"]
+            full_output_folder = os.path.join(upload_dir, os.path.normpath(subfolder))
+            filepath = os.path.abspath(os.path.join(full_output_folder, filename))
+
+            if os.path.commonpath((upload_dir, filepath)) != upload_dir:
+                return 400
+
+            if not os.path.exists(full_output_folder):
+                os.makedirs(full_output_folder)
+
+            split = os.path.splitext(filename)
+
+            if overwrite is not None and (overwrite == "true" or overwrite == "1"):
+                pass
+            else:
+                i = 1
+                while os.path.exists(filepath):
+                    filename = f"{split[0]} ({i}){split[1]}"
+                    filepath = os.path.join(full_output_folder, filename)
+                    i += 1
+
+            if image_save_function is not None:
+                image_save_function(image, post, filepath)
+            else:
+                with open(filepath, "wb") as f:
+                    f.write(image.file.read())
+
+            return {"name" : filename, "subfolder": subfolder, "type": image_upload_type}
+        else:
+            return 400
+
+    def get_dir_by_type(self,dir_type):
+        if dir_type is None:
+            dir_type = "input"
+
+        if dir_type == "input":
+            type_dir = folder_paths.get_input_directory()
+        elif dir_type == "temp":
+            type_dir = folder_paths.get_temp_directory()
+        elif dir_type == "output":
+            type_dir = folder_paths.get_output_directory()
+
+        return type_dir, dir_type
+
