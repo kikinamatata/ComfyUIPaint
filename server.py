@@ -4,6 +4,7 @@ import asyncio
 import traceback
 
 import nodes
+import random
 import folder_paths
 import execution
 import uuid
@@ -206,6 +207,21 @@ class PromptServer():
         async def upload_image(request):
             post = await request.post()
             return image_upload(post)
+
+        @routes.post("/remove")
+        async def remove_image(request):
+            post = await request.post()
+            image_upload_type = post.get("type")
+            upload_dir, image_upload_type = get_dir_by_type(image_upload_type)
+            filename = post.get("name")
+            subfolder = post.get("subfolder", "")
+            full_output_folder = os.path.join(upload_dir, os.path.normpath(subfolder))
+            filepath = os.path.abspath(os.path.join(full_output_folder, filename))
+            if os.path.exists(filepath):
+                os.remove(filepath)
+                return web.Response(status=200)
+            else:
+                return web.Response(status=400)
 
 
         @routes.post("/upload/mask")
@@ -450,6 +466,38 @@ class PromptServer():
             queue_info['queue_running'] = current_queue[0]
             queue_info['queue_pending'] = current_queue[1]
             return web.json_response(queue_info)
+        
+        @routes.post("/digital-painting")
+        async def post_digital_painting(request):
+            print("got digital painting")
+            json_data = await request.json()
+            client_id = json_data["client_id"]
+            image_name = json_data["image_name"]
+            user_prompt = json_data["user_prompt"]
+
+            if image_name is not None:
+                prompt = json.load(open('workflows\workflow_api.json'))
+                prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
+                prompt["12"]["inputs"]["image"] = image_name
+                if user_prompt != "":
+                    prompt["6"]["inputs"]["text"] = user_prompt
+
+                number = self.number
+                self.number += 1
+                
+                valid = execution.validate_prompt(prompt)
+                extra_data ={"client_id": client_id}
+                if valid[0]:
+                    prompt_id = str(uuid.uuid4())
+                    outputs_to_execute = valid[2]
+                    self.prompt_queue.put((number, prompt_id, prompt, extra_data, outputs_to_execute))
+                    response = {"prompt_id": prompt_id, "number": number, "node_errors": valid[3]}
+                    return web.json_response(response)
+                else:
+                    print("invalid prompt:", valid[1])
+                    return web.json_response({"error": valid[1], "node_errors": valid[3]}, status=400)
+            else:
+                return web.json_response({"error": "no client_id", "node_errors": []}, status=400)
 
         @routes.post("/prompt")
         async def post_prompt(request):
