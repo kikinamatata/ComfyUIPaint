@@ -689,7 +689,7 @@ class ServerExtension:
         response["image"]=resp
 
         if image_name is not None:
-            prompt = json.load(open('workflows\workflow_api.json'))
+            prompt = json.load(open(os.path.join('workflows', 'workflow_api.json')))
             prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
             prompt["12"]["inputs"]["image"] = image_name
             if user_prompt != "":
