@@ -10,3 +10,7 @@ Pillow
 scipy
 tqdm
 psutil
+opencv-python
+insightface
+onnxruntime
+gradio
