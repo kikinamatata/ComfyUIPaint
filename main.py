@@ -117,6 +117,7 @@ def prompt_worker(q, server):
                             completed=e.success,
                             messages=e.status_messages))
             if server.client_id is not None:
+                server.progress = {'status':'executing',"node": None, "prompt_id": prompt_id}
                 server.send_sync("executing", { "node": None, "prompt_id": prompt_id }, server.client_id)
 
             current_time = time.perf_counter()
@@ -152,7 +153,7 @@ def hijack_progress(server):
     def hook(value, total, preview_image):
         comfy.model_management.throw_exception_if_processing_interrupted()
         progress = {"value": value, "max": total, "prompt_id": server.last_prompt_id, "node": server.last_node_id}
-
+        server.progress = progress
         server.send_sync("progress", progress, server.client_id)
         if preview_image is not None:
             server.send_sync(BinaryEventTypes.UNENCODED_PREVIEW_IMAGE, preview_image, server.client_id)

@@ -94,6 +94,7 @@ class PromptServer():
         self.routes = routes
         self.last_node_id = None
         self.client_id = None
+        self.progress = {"value": 0, "max": 20, "prompt_id": None, "node": self.last_node_id}
 
         self.on_prompt_handlers = []
 
@@ -123,7 +124,18 @@ class PromptServer():
             finally:
                 self.sockets.pop(sid, None)
             return ws
-
+        
+        @routes.get("/prompt_status/{prompt_id}")
+        async def get_prompt_status(request):
+            prompt_id = request.match_info.get("prompt_id", None)
+            if prompt_id == self.progress["prompt_id"]:
+                progress = self.progress
+                if "status" not in self.progress:
+                    progress["status"]=200
+                return web.json_response(self.progress)
+            else:
+                return web.json_response({"status":400,"error": "prompt_id not found"})
+            
         @routes.get("/")
         async def get_root(request):
             return web.FileResponse(os.path.join(self.web_root, "index.html"))
