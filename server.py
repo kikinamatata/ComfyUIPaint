@@ -690,6 +690,7 @@ class ServerExtension:
         post = await request.post()
         client_id = post.get("client_id")
         user_prompt = post.get("user_prompt")
+        ref_name = post.get("ref_name")
         img = {'image': post.get("image"), 'overwrite': post.get("overwrite"), 'type': post.get("type"), 'subfolder': post.get("subfolder")}
         resp = await self.image_upload(img)
 
@@ -701,9 +702,14 @@ class ServerExtension:
         response["image"]=resp
 
         if image_name is not None:
-            prompt = json.load(open(os.path.join('workflows', 'workflow_api.json')))
+            if ref_name == "":
+                prompt = json.load(open(os.path.join('workflows', 'workflow_api.json')))
+                prompt["12"]["inputs"]["image"] = image_name
+            else:
+                prompt = json.load(open(os.path.join('workflows', 'workflow_digipaint.json')))
+                prompt["12"]["inputs"]["image"] = ref_name
+                prompt['30']['inputs']['image'] = image_name
             prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
-            prompt["12"]["inputs"]["image"] = image_name
             if user_prompt != "":
                 prompt["6"]["inputs"]["text"] = user_prompt
 
