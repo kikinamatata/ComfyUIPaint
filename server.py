@@ -2,7 +2,7 @@ import os
 import sys
 import asyncio
 import traceback
-
+import base64
 import nodes
 import random
 import folder_paths
@@ -235,6 +235,31 @@ class PromptServer():
             else:
                 return web.Response(status=400)
 
+        @routes.get("/thumbnails")
+        async def thumbnails(request):
+            path = os.path.join(folder_paths.get_input_directory(), "thumbnails")
+            if not os.path.exists(path):
+                return web.Response(status=404)
+            
+            image_data_list = []
+            for filename in os.listdir(path):
+                if filename.endswith(('.jpg', '.jpeg', '.png')):
+                    file_path = os.path.join(path, filename)
+                    with open(file_path, 'rb') as image_file:
+                        image_data = base64.b64encode(image_file.read()).decode('utf-8')
+                        image_data_list.append({
+                    'filename': filename,
+                    'data': image_data
+                })
+            
+            return web.json_response({'thumbnails': image_data_list})
+
+            
+
+            
+
+
+
 
         @routes.post("/upload/mask")
         async def upload_mask(request):
@@ -322,7 +347,6 @@ class PromptServer():
                                 img = img.convert("RGB")
                             img.save(buffer, format=image_format, quality=quality)
                             buffer.seek(0)
-
                             return web.Response(body=buffer.read(), content_type=f'image/{image_format}',
                                                 headers={"Content-Disposition": f"filename=\"{filename}\""})
 
@@ -342,7 +366,6 @@ class PromptServer():
                             buffer = BytesIO()
                             new_img.save(buffer, format='PNG')
                             buffer.seek(0)
-
                             return web.Response(body=buffer.read(), content_type='image/png',
                                                 headers={"Content-Disposition": f"filename=\"{filename}\""})
 
@@ -359,7 +382,6 @@ class PromptServer():
                             alpha_buffer = BytesIO()
                             alpha_img.save(alpha_buffer, format='PNG')
                             alpha_buffer.seek(0)
-
                             return web.Response(body=alpha_buffer.read(), content_type='image/png',
                                                 headers={"Content-Disposition": f"filename=\"{filename}\""})
                     else:
@@ -706,7 +728,7 @@ class ServerExtension:
                 prompt = json.load(open(os.path.join('workflows', 'workflow_api.json')))
                 prompt["12"]["inputs"]["image"] = image_name
             else:
-                prompt = json.load(open(os.path.join('workflows', 'workflow_digipaint.json')))
+                prompt = json.load(open(os.path.join('workflows', 'ai_workflow',ref_name.split('.')[0]+'.json')))
                 prompt["12"]["inputs"]["image"] = ref_name
                 prompt['30']['inputs']['image'] = image_name
             prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
@@ -778,7 +800,6 @@ class ServerExtension:
     def get_dir_by_type(self,dir_type):
         if dir_type is None:
             dir_type = "input"
-
         if dir_type == "input":
             type_dir = folder_paths.get_input_directory()
         elif dir_type == "temp":

@@ -1,14 +1,14 @@
 {
   "3": {
     "inputs": {
-      "seed": 2674941754,
+      "seed": 165432674813561,
       "steps": 20,
       "cfg": 7,
       "sampler_name": "dpmpp_2m",
       "scheduler": "karras",
       "denoise": 1,
       "model": [
-        "23",
+        "4",
         0
       ],
       "positive": [
@@ -51,7 +51,7 @@
   },
   "6": {
     "inputs": {
-      "text": "digital painting style",
+      "text": "8k intricate, highly detailed, digital photography, best quality, masterpiece, a full-body shot photo of a handsome warrior who lived with dragons his whole life and is now leading them to battle. Torn clothes exposing parts of his body, scratch marks, epic, hyperrealistic, hyperrealism, 8k, cinematic lighting, Greg Rutkowski, WLOP.",
       "clip": [
         "28",
         0
@@ -64,7 +64,7 @@
   },
   "7": {
     "inputs": {
-      "text": "",
+      "text": "blur, shrink dress, bad anatomy, bad hands, three hands, three legs, bad arms, missing legs, missing arms, poorly drawn face, bad face, fused face, cloned face, worst face, three crus, extra crus, fused crus, worst feet, three feet, fused feet, fused thigh, three thigh, fused thigh, extra thigh, worst thigh, missing fingers, extra fingers, ugly fingers, long fingers, horn, extra eyes, huge eyes, 2girl, amputation, disconnected limbs, cartoon, cg, 3d, unreal, animate",
       "clip": [
         "28",
         0
@@ -129,7 +129,7 @@
   },
   "12": {
     "inputs": {
-      "image": "244265560_10227611884548979_6104897418530269593_n.jpg",
+      "image": "DragonGirl-Jayanthi.png",
       "upload": "image"
     },
     "class_type": "LoadImage",
@@ -149,25 +149,6 @@
     "class_type": "PiDiNetPreprocessor",
     "_meta": {
       "title": "PiDiNet Soft-Edge Lines"
-    }
-  },
-  "23": {
-    "inputs": {
-      "lora_name": "digital_painting-000007.safetensors",
-      "strength_model": 1,
-      "strength_clip": 1,
-      "model": [
-        "4",
-        0
-      ],
-      "clip": [
-        "4",
-        1
-      ]
-    },
-    "class_type": "LoraLoader",
-    "_meta": {
-      "title": "Load LoRA"
     }
   },
   "26": {
@@ -213,7 +194,7 @@
     "inputs": {
       "stop_at_clip_layer": -2,
       "clip": [
-        "23",
+        "4",
         1
       ]
     },
@@ -237,7 +218,7 @@
   },
   "30": {
     "inputs": {
-      "image": "04STEVEJOBS1-superJumbo-square.jpeg",
+      "image": "Moana-Child.jpg",
       "upload": "image"
     },
     "class_type": "LoadImage",
