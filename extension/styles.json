@@ -1,0 +1,17 @@
+[
+ {
+  "name": "Digital Painting",
+  "thumbnail": "extension/input/digital_painting_thumbnail.jpg",
+  "image": "extension/input/digital_painting.jpg"
+ },
+ {
+    "name": "Dragon Girl",
+    "thumbnail": "extension/input/dragon_girl_thumbnail.png",
+    "image": "extension/input/dragon_girl.png"
+ },
+ {
+    "name": "Dragon Man",
+    "thumbnail": "extension/input/dragon_man_thumbnail.jpg",
+    "image": "extension/input/dragon_man.jpg"
+   }
+]

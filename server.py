@@ -68,9 +68,11 @@ def create_cors_middleware(allowed_origin: str):
     return cors_middleware
 
 class PromptServer():
+    
+
     def __init__(self, loop):
         PromptServer.instance = self
-
+        
         mimetypes.init()
         mimetypes.types_map['.js'] = 'application/javascript; charset=utf-8'
 
@@ -97,7 +99,15 @@ class PromptServer():
         self.progress = {"value": 0, "max": 20, "prompt_id": None, "node": self.last_node_id}
 
         self.on_prompt_handlers = []
+        @routes.post("/digital-painting")
+        async def post_digital_painting(request):
+            server_extension = ServerExtension()
+            return await server_extension.post_digital_painting(request, self)
 
+        @routes.get("/thumbnails")
+        async def thumbnails(request):
+            server_extension = ServerExtension()
+            return await server_extension.thumbnails(request,self) 
         @routes.get('/ws')
         async def websocket_handler(request):
             ws = web.WebSocketResponse()
@@ -235,32 +245,7 @@ class PromptServer():
             else:
                 return web.Response(status=400)
 
-        @routes.get("/thumbnails")
-        async def thumbnails(request):
-            path = os.path.join(folder_paths.get_input_directory(), "thumbnails")
-            if not os.path.exists(path):
-                return web.Response(status=404)
-            
-            image_data_list = []
-            for filename in os.listdir(path):
-                if filename.endswith(('.jpg', '.jpeg', '.png')):
-                    file_path = os.path.join(path, filename)
-                    with open(file_path, 'rb') as image_file:
-                        image_data = base64.b64encode(image_file.read()).decode('utf-8')
-                        image_data_list.append({
-                    'filename': filename,
-                    'data': image_data
-                })
-            
-            return web.json_response({'thumbnails': image_data_list})
-
-            
-
-            
-
-
-
-
+       
         @routes.post("/upload/mask")
         async def upload_mask(request):
             post = await request.post()
@@ -501,10 +486,7 @@ class PromptServer():
             queue_info['queue_pending'] = current_queue[1]
             return web.json_response(queue_info)
         
-        @routes.post("/digital-painting")
-        async def post_digital_painting(request):
-            server_extension = ServerExtension()
-            return await server_extension.post_digital_painting(request, self)
+        
 
         @routes.post("/prompt")
         async def post_prompt(request):
@@ -586,7 +568,7 @@ class PromptServer():
                 for id_to_delete in to_delete:
                     self.prompt_queue.delete_history_item(id_to_delete)
 
-            return web.Response(status=200)
+            return web.Response(status=200)   
         
     def add_routes(self):
         self.user_manager.add_routes(self.routes)
@@ -706,7 +688,67 @@ class PromptServer():
 
         return json_data
 
+    
+           
+
+class StyleVO:
+        name = ""
+        thumbnail = ""
+        image = ""
+        def __init__(self, name, thumbnail,image):
+            self.name = name
+            self.image = image
+            self.thumbnail = thumbnail
 class ServerExtension:
+
+    async def load_styles_json(self)->list[StyleVO]:
+        with open(os.path.join('extension', 'styles.json')) as f:
+            style_list_json = json.load(f)
+            styles = []
+            # for style in style_list_json:
+            for style in style_list_json:
+                style_name = style["name"]
+                style_thumbnail = style["thumbnail"]
+                style_image = style["image"]
+                style_vo = StyleVO(style_name, style_thumbnail, style_image)
+                styles.append(style_vo)
+            print("loaded styles",style_list_json)
+
+            return styles
+            
+
+    async def thumbnails(self, request,prompt_server:PromptServer):
+            styles = await self.load_styles_json()
+            image_data_list = []
+            for style in styles:
+                print(style.name)
+                file_path = os.path.join(style.thumbnail)
+                with open(file_path, 'rb') as image_file:
+                        image_data = base64.b64encode(image_file.read()).decode('utf-8')
+                        image_data_list.append({
+                    'filename': style.name,
+                    'data': image_data
+                })
+            return web.json_response({'thumbnails': image_data_list})
+
+
+            # path = os.path.join(folder_paths.get_input_directory(), "thumbnails")
+            path = os.path.join('extension', 'input', "thumbnails")
+            if not os.path.exists(path):
+                return web.Response(status=404)
+            
+            image_data_list = []
+            for filename in os.listdir(path):
+                if filename.endswith(('.jpg', '.jpeg', '.png')):
+                    file_path = os.path.join(path, filename)
+                    with open(file_path, 'rb') as image_file:
+                        image_data = base64.b64encode(image_file.read()).decode('utf-8')
+                        image_data_list.append({
+                    'filename': filename,
+                    'data': image_data
+                })
+            
+            return web.json_response({'thumbnails': image_data_list})
     async def post_digital_painting(self,request,prompt_server:PromptServer):
         print("got digital painting")
         post = await request.post()
@@ -725,10 +767,10 @@ class ServerExtension:
 
         if image_name is not None:
             if ref_name == "":
-                prompt = json.load(open(os.path.join('workflows', 'workflow_api.json')))
+                prompt = json.load(open(os.path.join('extension', 'workflow', 'workflow_api.json')))
                 prompt["12"]["inputs"]["image"] = image_name
             else:
-                prompt = json.load(open(os.path.join('workflows', 'ai_workflow',ref_name.split('.')[0]+'.json')))
+                prompt = json.load(open(os.path.join('extension', 'workflow',ref_name.split('.')[0]+'.json')))
                 prompt["12"]["inputs"]["image"] = ref_name
                 prompt['30']['inputs']['image'] = image_name
             prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
@@ -809,3 +851,6 @@ class ServerExtension:
 
         return type_dir, dir_type
 
+    
+
+ 
