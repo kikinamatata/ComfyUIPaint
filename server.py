@@ -374,6 +374,11 @@ class PromptServer():
 
             return web.Response(status=404)
 
+        @routes.get("/view_extention")
+        async def view_extention(request):
+            serverextention = ServerExtension()
+            return await serverextention.view_extention_image(request)
+            
         @routes.get("/view_metadata/{folder_name}")
         async def view_metadata(request):
             folder_name = request.match_info.get("folder_name", None)
@@ -486,8 +491,6 @@ class PromptServer():
             queue_info['queue_pending'] = current_queue[1]
             return web.json_response(queue_info)
         
-        
-
         @routes.post("/prompt")
         async def post_prompt(request):
             print("got prompt")
@@ -699,7 +702,19 @@ class StyleVO:
             self.name = name
             self.image = image
             self.thumbnail = thumbnail
+
+class PromptVO:
+    prompt_id = ""
+    input_image = None
+    output_image = None
+    def __init__(self, prompt_id):
+        self.prompt_id = prompt_id
+
 class ServerExtension:
+    prompt_list:list[PromptVO] = []
+
+    def __init__(self):
+        ServerExtension.instance = self
 
     async def load_styles_json(self)->list[StyleVO]:
         with open(os.path.join('extension', 'styles.json')) as f:
@@ -749,7 +764,9 @@ class ServerExtension:
                 })
             
             return web.json_response({'thumbnails': image_data_list})
+
     async def post_digital_painting(self,request,prompt_server:PromptServer):
+        prompt_id = str(uuid.uuid4())
         print("got digital painting")
         post = await request.post()
         client_id = post.get("client_id")
@@ -757,6 +774,7 @@ class ServerExtension:
         ref_name = post.get("ref_name")
         img = {'image': post.get("image"), 'overwrite': post.get("overwrite"), 'type': post.get("type"), 'subfolder': post.get("subfolder")}
         resp = await self.image_upload(img)
+        input_filepath = resp['filepath']
 
         if resp == 400:
             return web.json_response({"error":"Image Upload Failed"},status=400)
@@ -783,7 +801,9 @@ class ServerExtension:
             valid = execution.validate_prompt(prompt)
             extra_data ={"client_id": client_id}
             if valid[0]:
-                prompt_id = str(uuid.uuid4())
+                promptvo = PromptVO(prompt_id)
+                promptvo.input_image = input_filepath
+                self.prompt_list.append(promptvo)
                 outputs_to_execute = valid[2]
                 prompt_server.prompt_queue.put((number, prompt_id, prompt, extra_data, outputs_to_execute))
                 response["prompt_id"] = prompt_id
@@ -835,9 +855,52 @@ class ServerExtension:
                 with open(filepath, "wb") as f:
                     f.write(image.file.read())
 
-            return {"name" : filename, "subfolder": subfolder, "type": image_upload_type}
+            return {"name" : filename, "subfolder": subfolder, "type": image_upload_type,'filepath':filepath}
         else:
             return 400
+
+    async def view_extention_image(self,request):
+        prompt_id = request.rel_url.query["prompt_id"]
+        for prompt in self.prompt_list:
+            if prompt.prompt_id == prompt_id:
+                os.remove(prompt.input_image)
+                self.prompt_list.remove(prompt)
+                break
+        if "filename" in request.rel_url.query:
+            filename = request.rel_url.query["filename"]
+            filename,output_dir = folder_paths.annotated_filepath(filename)
+
+            # validation for security: prevent accessing arbitrary path
+            if filename[0] == '/' or '..' in filename:
+                return web.Response(status=400)
+
+            if output_dir is None:
+                type = request.rel_url.query.get("type", "output")
+                output_dir = folder_paths.get_directory_by_type(type)
+
+            if output_dir is None:
+                return web.Response(status=400)
+
+            if "subfolder" in request.rel_url.query:
+                full_output_dir = os.path.join(output_dir, request.rel_url.query["subfolder"])
+                if os.path.commonpath((os.path.abspath(full_output_dir), output_dir)) != output_dir:
+                    return web.Response(status=403)
+                output_dir = full_output_dir
+
+            filename = os.path.basename(filename)
+            file = os.path.join(output_dir, filename)
+
+            if os.path.isfile(file):
+                with open(file, 'rb') as image_file:
+                    image_data = base64.b64encode(image_file.read()).decode('utf-8')
+                    response_data = {
+                        'filename': filename,
+                        'data': image_data
+                    }
+                os.remove(file)
+                return web.json_response(response_data)
+
+        return web.Response(status=404)
 
     def get_dir_by_type(self,dir_type):
         if dir_type is None:
