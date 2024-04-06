@@ -691,8 +691,6 @@ class PromptServer():
 
         return json_data
 
-    
-           
 
 class StyleVO:
         name = ""
@@ -703,6 +701,14 @@ class StyleVO:
             self.image = image
             self.thumbnail = thumbnail
 
+class GroupStyleVO:
+    name = None
+    items :list[StyleVO] = None
+    def __init__(self, name):
+        self.name = name
+        self.items = []    
+
+
 class PromptVO:
     prompt_id = ""
     input_image = None
@@ -712,13 +718,30 @@ class PromptVO:
 
 class ServerExtension:
     prompt_list:list[PromptVO] = []
+    group_style_list:list[GroupStyleVO] = []
 
     def __init__(self):
         ServerExtension.instance = self
 
-    async def load_styles_json(self)->list[StyleVO]:
+    async def load_styles_json(self)->list[GroupStyleVO]:
         with open(os.path.join('extension', 'styles.json')) as f:
             style_list_json = json.load(f)
+            group_styles = []
+            for group_style in style_list_json:
+                group_style_name = group_style["name"]
+                group_style_vo = GroupStyleVO(group_style_name)
+                for style in group_style["items"]:
+                    style_name = style["name"]
+                    style_thumbnail = style["thumbnail"]
+                    style_image = style["image"]
+                    style_vo = StyleVO(style_name, style_thumbnail, style_image)
+                    group_style_vo.items.append(style_vo)
+                group_styles.append(group_style_vo)
+            return group_styles
+
+            
+
+
             styles = []
             # for style in style_list_json:
             for style in style_list_json:
@@ -733,6 +756,25 @@ class ServerExtension:
             
 
     async def thumbnails(self, request,prompt_server:PromptServer):
+            group_style_list = await self.load_styles_json()
+            image_data_list = []
+            for group_style in group_style_list:
+                group = {}
+                group["name"] = group_style.name
+                items = []
+                for style in group_style.items:
+                        print(style.name)
+                        file_path = os.path.join(style.thumbnail)
+                        with open(file_path, 'rb') as image_file:
+                            image_data = base64.b64encode(image_file.read()).decode('utf-8')
+                            items.append({
+                        'filename': style.name,
+                        'data': image_data
+                    })
+                group["items"] = items            
+                image_data_list.append(group)
+            return web.json_response({'thumbnails': image_data_list})
+
             styles = await self.load_styles_json()
             image_data_list = []
             for style in styles:

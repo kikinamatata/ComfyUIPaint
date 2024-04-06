@@ -1,17 +1,43 @@
 [
- {
-  "name": "digital_painting.jpg",
-  "thumbnail": "extension/input/digital_painting_thumbnail.jpg",
-  "image": "extension/input/digital_painting.jpg"
- },
- {
-    "name": "dragon_girl.png",
-    "thumbnail": "extension/input/dragon_girl_thumbnail.png",
-    "image": "extension/input/dragon_girl.png"
- },
- {
-    "name": "dragon_man.jpg",
-    "thumbnail": "extension/input/dragon_man_thumbnail.jpg",
-    "image": "extension/input/dragon_man.jpg"
+   { 
+      "name":"dragon",
+      "items":
+      [
+         {
+         "name": "digital_painting.jpg",
+         "thumbnail": "extension/input/digital_painting_thumbnail.jpg",
+         "image": "extension/input/digital_painting.jpg"
+         },
+         {
+            "name": "dragon_girl.png",
+            "thumbnail": "extension/input/dragon_girl_thumbnail.png",
+            "image": "extension/input/dragon_girl.png"
+         },
+         {
+            "name": "dragon_man.jpg",
+            "thumbnail": "extension/input/dragon_man_thumbnail.jpg",
+            "image": "extension/input/dragon_man.jpg"
+         }
+      ]
+   },{ 
+      "name":"dragon2",
+      "items":
+      [
+         {
+         "name": "digital_painting.jpg",
+         "thumbnail": "extension/input/digital_painting_thumbnail.jpg",
+         "image": "extension/input/digital_painting.jpg"
+         },
+         {
+            "name": "dragon_girl.png",
+            "thumbnail": "extension/input/dragon_girl_thumbnail.png",
+            "image": "extension/input/dragon_girl.png"
+         },
+         {
+            "name": "dragon_man.jpg",
+            "thumbnail": "extension/input/dragon_man_thumbnail.jpg",
+            "image": "extension/input/dragon_man.jpg"
+         }
+      ]
    }
 ]
