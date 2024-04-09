@@ -691,8 +691,6 @@ class PromptServer():
 
         return json_data
 
-    
-           
 
 class StyleVO:
         name = ""
@@ -705,6 +703,14 @@ class StyleVO:
             self.thumbnail = thumbnail
             self.workflow = workflow
 
+class GroupStyleVO:
+    name = None
+    items :list[StyleVO] = None
+    def __init__(self, name):
+        self.name = name
+        self.items = []    
+
+
 class PromptVO:
     prompt_id = ""
     input_image = None
@@ -714,21 +720,38 @@ class PromptVO:
 
 class ServerExtension:
     prompt_list:list[PromptVO] = []
+    group_style_list:list[GroupStyleVO] = []
 
     def __init__(self):
         ServerExtension.instance = self
 
-    async def load_styles_json(self)->list[StyleVO]:
+    async def load_styles_json(self)->list[GroupStyleVO]:
         with open(os.path.join('input','styles', 'styles_config.json')) as f:
             style_list_json = json.load(f)
+            group_vo_list = []
+            for group_data in style_list_json:
+                group_name = group_data["name"]
+                group_vo = GroupStyleVO(group_name)
+                for style in group_data["items"]:
+                    name = style["name"]
+                    thumbnail = style["thumbnail"]
+                    image = style["image"]
+                    workflow = style["workflow"]
+                    style_vo = StyleVO(name, thumbnail, image,workflow)
+                    group_vo.items.append(style_vo)
+                group_vo_list.append(group_vo)
+            return group_vo_list
+
+            
+
+
             styles = []
             # for style in style_list_json:
             for style in style_list_json:
-                name = style["name"]
-                thumbnail = style["thumbnail"]
-                image = style["image"]
-                workflow = style["workflow"]
-                style_vo = StyleVO(name,thumbnail, image,workflow)
+                style_name = style["name"]
+                style_thumbnail = style["thumbnail"]
+                style_image = style["image"]
+                style_vo = StyleVO(style_name, style_thumbnail, style_image)
                 styles.append(style_vo)
             print("loaded styles",style_list_json)
 
@@ -736,6 +759,25 @@ class ServerExtension:
             
 
     async def thumbnails(self, request,prompt_server:PromptServer):
+            group_style_list = await self.load_styles_json()
+            image_data_list = []
+            for group_style in group_style_list:
+                group = {}
+                group["name"] = group_style.name
+                items = []
+                for style in group_style.items:
+                        print(style.name)
+                        file_path = os.path.join(style.thumbnail)
+                        with open(file_path, 'rb') as image_file:
+                            image_data = base64.b64encode(image_file.read()).decode('utf-8')
+                            items.append({
+                        'filename': style.name,
+                        'data': image_data
+                    })
+                group["items"] = items            
+                image_data_list.append(group)
+            return web.json_response({'thumbnails': image_data_list})
+
             styles = await self.load_styles_json()
             image_data_list = []
             for style in styles:
@@ -857,24 +899,28 @@ class ServerExtension:
             else:
                 with open(filepath, "wb") as f:
                     f.write(image.file.read())
-
+            print('image uploaded at',filepath)
             return {"name" : filename, "subfolder": subfolder, "type": image_upload_type,'filepath':filepath}
         else:
             return 400
 
     async def view_extention_image(self,request):
+        print("view extension api called");
         prompt_id = request.rel_url.query["prompt_id"]
         for prompt in self.prompt_list:
             if prompt.prompt_id == prompt_id:
                 os.remove(prompt.input_image)
                 self.prompt_list.remove(prompt)
                 break
+        
+        print('view extension 1')        
         if "filename" in request.rel_url.query:
             filename = request.rel_url.query["filename"]
             filename,output_dir = folder_paths.annotated_filepath(filename)
-
+            
             # validation for security: prevent accessing arbitrary path
             if filename[0] == '/' or '..' in filename:
+                print('view extension 2')
                 return web.Response(status=400)
 
             if output_dir is None:
@@ -882,11 +928,13 @@ class ServerExtension:
                 output_dir = folder_paths.get_directory_by_type(type)
 
             if output_dir is None:
+                print('view extension 3')
                 return web.Response(status=400)
 
             if "subfolder" in request.rel_url.query:
                 full_output_dir = os.path.join(output_dir, request.rel_url.query["subfolder"])
                 if os.path.commonpath((os.path.abspath(full_output_dir), output_dir)) != output_dir:
+                    print('view extension 4')
                     return web.Response(status=403)
                 output_dir = full_output_dir
 
@@ -901,6 +949,9 @@ class ServerExtension:
                         'data': image_data
                     }
                 os.remove(file)
+                # end
+                print('view extension 5')
+                #print('response data',response_data)
                 return web.json_response(response_data)
 
         return web.Response(status=404)
