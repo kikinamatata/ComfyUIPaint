@@ -1,0 +1,26 @@
+[
+   { 
+      "style_group_name":"dragon",
+      "style_items":
+      [
+         {
+         "name": "digital_painting.jpg",
+         "thumbnail": "input/styles/digital_painting_thumbnail.jpg",
+         "image": "input/styles/digital_painting.jpg",
+         "worflow":"digital_painting.json"
+         },
+         {
+         "name": "dragon_girl.png",
+         "thumbnail": "input/styles/dragon_girl_thumbnail.png",
+         "image": "input/styles/dragon_girl.png",
+         "worflow":"dragon_girl.json"
+         },
+         {
+         "name": "dragon_man.jpg",
+         "thumbnail": "input/styles/dragon_man_thumbnail.jpg",
+         "image": "input/styles/dragon_man.jpg",
+         "worflow":"dragon_man.json"
+         }
+      ]
+   }
+]
