@@ -811,13 +811,26 @@ class ServerExtension:
             return web.json_response({'thumbnails': image_data_list})
 
     async def post_digital_painting(self,request,prompt_server:PromptServer):
+        # data = {
+        #     "client_id": self.client_id,
+        #     "user_prompt": '',
+        #     "overwrite":None,
+        #     "subfolder":"",
+        #     "ref_name":ref_name,
+        #     "type":None
+        #     }
+        # print(data)
+        # files = {"image":open(image_path, 'rb')}
+        
         prompt_id = str(uuid.uuid4())
         print("got digital painting")
         post = await request.post()
         client_id = post.get("client_id")
-        user_prompt = post.get("user_prompt")
+        user_prompt = "" #post.get("user_prompt")
         ref_name = post.get("ref_name")
-        img = {'image': post.get("image"), 'overwrite': post.get("overwrite"), 'type': post.get("type"), 'subfolder': post.get("subfolder")}
+        #img = {'image': post.get("image"), 'overwrite': post.get("overwrite"), 'type': post.get("type"), 'subfolder': post.get("subfolder")}
+        img = {'image': post.get("image"), 'overwrite': None, 'type':None, 'subfolder':""}
+        
         resp = await self.image_upload(img)
         input_filepath = resp['filepath']
 
@@ -834,7 +847,7 @@ class ServerExtension:
                 prompt["12"]["inputs"]["image"] = image_name
             else:
                 prompt = json.load(open(os.path.join('input', 'styles',ref_name.split('.')[0]+'.json')))
-                prompt["12"]["inputs"]["image"] = ref_name
+                prompt["12"]["inputs"]["image"] = "styles/" + ref_name
                 prompt['30']['inputs']['image'] = image_name
             prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
             if user_prompt != "":
@@ -900,7 +913,9 @@ class ServerExtension:
                 with open(filepath, "wb") as f:
                     f.write(image.file.read())
             print('image uploaded at',filepath)
-            return {"name" : filename, "subfolder": subfolder, "type": image_upload_type,'filepath':filepath}
+            resp_json = {"name" : filename, "subfolder": subfolder, "type": image_upload_type,'filepath':filepath}
+            print("upload image response json",resp_json)
+            return resp_json
         else:
             return 400
 
@@ -949,6 +964,7 @@ class ServerExtension:
                         'data': image_data
                     }
                 os.remove(file)
+                print('file removed after generation :',file)
                 # end
                 print('view extension 5')
                 #print('response data',response_data)
