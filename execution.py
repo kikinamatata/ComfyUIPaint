@@ -9,6 +9,7 @@ from typing import List, Literal, NamedTuple, Optional
 
 import torch
 import nodes
+import server
 
 import comfy.model_management
 
@@ -751,13 +752,15 @@ class PromptQueue:
             status_dict: Optional[dict] = None
             if status is not None:
                 status_dict = copy.deepcopy(status._asdict())
-
-            self.history[prompt[1]] = {
-                "prompt": prompt,
-                "outputs": copy.deepcopy(outputs),
-                'status': status_dict,
-            }
+            
             self.server.queue_updated()
+            # this prompt 1 is prompt id
+            # outputs  filename is image file name
+            #             { 
+            #     "29": {"images": [{"filename": "digi_paint_00003_.png", "subfolder": "", "type": "output"}]},
+            #     "21": {"images": [{"filename": "digi_paint_00003_.png", "subfolder": "", "type": "output"}]}
+            # } 
+            self.server.task_done_update_server_extension(prompt_id=prompt[1], outputs=outputs, status=status_dict)
 
     def get_current_queue(self):
         with self.mutex:
