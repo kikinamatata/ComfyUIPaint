@@ -9,7 +9,6 @@ from typing import List, Literal, NamedTuple, Optional
 
 import torch
 import nodes
-import server
 
 import comfy.model_management
 
@@ -753,6 +752,11 @@ class PromptQueue:
             if status is not None:
                 status_dict = copy.deepcopy(status._asdict())
             
+            self.history[prompt[1]] = {
+                "prompt": prompt,
+                "outputs": copy.deepcopy(outputs),
+                'status': status_dict,
+            }
             self.server.queue_updated()
             # this prompt 1 is prompt id
             # outputs  filename is image file name

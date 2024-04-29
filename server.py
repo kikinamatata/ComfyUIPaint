@@ -858,7 +858,7 @@ class ServerExtension:
                 prompt["12"]["inputs"]["image"] = image_name
             else:
                 prompt = json.load(open(os.path.join('input', 'styles',ref_name.split('.')[0]+'.json')))
-                prompt["12"]["inputs"]["image"] = ref_name
+                prompt["12"]["inputs"]["image"] = 'styles/'+ ref_name
                 prompt['30']['inputs']['image'] = image_name
             prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
             if user_prompt != "":
