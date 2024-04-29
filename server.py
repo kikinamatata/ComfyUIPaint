@@ -843,10 +843,12 @@ class ServerExtension:
     
     async def image_upload(self,img, image_save_function=None):
         image = img["image"]
-        overwrite = img["overwrite"]
+        overwrite = "false" # img["overwrite"]
 
         image_upload_type = img["type"]
-        upload_dir, image_upload_type = self.get_dir_by_type(image_upload_type)
+        upload_dir = folder_paths.get_input_directory()
+        image_upload_type = "input"
+        # upload_dir, image_upload_type = self.get_dir_by_type(image_upload_type)
 
         if image and image.file:
             filename = image.filename
@@ -890,6 +892,7 @@ class ServerExtension:
         for prompt in self.prompt_list:
             if prompt.prompt_id == prompt_id:
                 os.remove(prompt.input_image)
+                print('Removed input image',prompt.input_image)
                 if os.path.isfile(prompt.output_image):
                     with open(prompt.output_image, 'rb') as image_file:
                         image_data = base64.b64encode(image_file.read()).decode('utf-8')
@@ -898,10 +901,11 @@ class ServerExtension:
                             'data': image_data
                         }
                     os.remove(prompt.output_image)
+                    
+                    print('Removed output image',prompt.output_image)
                     # end
-                    print('view extension 5')
                     self.prompt_list.remove(prompt)
-                    #print('response data',response_data)
+                    print('Done : view extension image response filename and data')
                     return web.json_response(response_data)
                 break
         return web.Response(status=404)
