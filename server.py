@@ -795,18 +795,19 @@ class ServerExtension:
         print("got digital painting")
         post = await request.post()
         client_id = post.get("client_id")
-        user_prompt = post.get("user_prompt")
+        # user_prompt = post.get("user_prompt")
         ref_name = post.get("ref_name")
-        img = {'image': post.get("image"), 'overwrite': post.get("overwrite"), 'type': post.get("type"), 'subfolder': post.get("subfolder")}
-        resp = await self.image_upload(img)
-        input_filepath = resp['filepath']
+        # img = {'image': post.get("image"), 'overwrite': post.get("overwrite"), 'type': post.get("type"), 'subfolder': post.get("subfolder")}
+        img = {'image': post.get("image")}
+        upload_resp = await self.image_upload(img)
+        input_filepath = upload_resp['filepath']
 
-        if resp == 400:
+        if upload_resp == 400:
             return web.json_response({"error":"Image Upload Failed"},status=400)
         
-        image_name = resp["name"]
+        image_name = upload_resp["name"]
         response = {}
-        response["image"]=resp
+        response["image"]=upload_resp
 
         if image_name is not None:
             if ref_name == "":
@@ -817,8 +818,8 @@ class ServerExtension:
                 prompt["12"]["inputs"]["image"] = 'styles/'+ ref_name
                 prompt['30']['inputs']['image'] = image_name
             prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
-            if user_prompt != "":
-                prompt["6"]["inputs"]["text"] = user_prompt
+            # if user_prompt != "":
+            #     prompt["6"]["inputs"]["text"] = user_prompt
 
             number = prompt_server.number
             prompt_server.number += 1
@@ -845,7 +846,7 @@ class ServerExtension:
         image = img["image"]
         overwrite = "false" # img["overwrite"]
 
-        image_upload_type = img["type"]
+        # image_upload_type = img["type"]
         upload_dir = folder_paths.get_input_directory()
         image_upload_type = "input"
         # upload_dir, image_upload_type = self.get_dir_by_type(image_upload_type)
@@ -855,8 +856,9 @@ class ServerExtension:
             if not filename:
                 return 400
 
-            subfolder = img["subfolder"]
-            full_output_folder = os.path.join(upload_dir, os.path.normpath(subfolder))
+            # subfolder = img["subfolder"]
+            # full_output_folder = os.path.join(upload_dir, os.path.normpath(subfolder))
+            full_output_folder = os.path.join(upload_dir)
             filepath = os.path.abspath(os.path.join(full_output_folder, filename))
 
             if os.path.commonpath((upload_dir, filepath)) != upload_dir:
@@ -865,24 +867,18 @@ class ServerExtension:
             if not os.path.exists(full_output_folder):
                 os.makedirs(full_output_folder)
 
+            #  to avoid overwriting the fie
             split = os.path.splitext(filename)
+            i = 1
+            while os.path.exists(filepath):
+                filename = f"{split[0]} ({i}){split[1]}"
+                filepath = os.path.join(full_output_folder, filename)
+                i += 1
 
-            if overwrite is not None and (overwrite == "true" or overwrite == "1"):
-                pass
-            else:
-                i = 1
-                while os.path.exists(filepath):
-                    filename = f"{split[0]} ({i}){split[1]}"
-                    filepath = os.path.join(full_output_folder, filename)
-                    i += 1
-
-            if image_save_function is not None:
-                image_save_function(image, post, filepath)
-            else:
-                with open(filepath, "wb") as f:
-                    f.write(image.file.read())
+            with open(filepath, "wb") as f:
+                f.write(image.file.read())
             print('image uploaded at',filepath)
-            return {"name" : filename, "subfolder": subfolder, "type": image_upload_type,'filepath':filepath}
+            return {"name" : filename, "type": image_upload_type,'filepath':filepath}
         else:
             return 400
 
