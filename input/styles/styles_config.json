@@ -26,7 +26,7 @@
    },
    { 
       "name":"Face Swap",
-      "style":"face__swap",
+      "style":"face_swap",
       
       "items":
       [

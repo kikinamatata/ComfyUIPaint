@@ -39,18 +39,21 @@ class StyleVO:
         thumbnail = ""
         image = ""
         workflow = ""
-        def __init__(self, name, thumbnail,image,workflow):
+        style =""
+        def __init__(self, name, thumbnail,image,workflow,style):
             self.name = name
             self.image = image
             self.thumbnail = thumbnail
             self.workflow = workflow
+            self.style = style
 
 class GroupStyleVO:
     name = None
     style = None
     items :list[StyleVO] = None
-    def __init__(self, name):
+    def __init__(self, name,style):
         self.name = name
+        self.style = style
         self.items = []    
 
 
@@ -75,13 +78,14 @@ class ServerExtension:
             group_vo_list = []
             for group_data in style_list_json:
                 group_name = group_data["name"]
-                group_vo = GroupStyleVO(group_name)
+                group_style = group_data["style"]
+                group_vo = GroupStyleVO(group_name,group_style)
                 for style in group_data["items"]:
                     name = style["name"]
                     thumbnail = style["thumbnail"]
                     image = style["image"]
                     workflow = style["workflow"]
-                    style_vo = StyleVO(name, thumbnail, image,workflow)
+                    style_vo = StyleVO(name, thumbnail, image,workflow,style=group_style)
                     group_vo.items.append(style_vo)
                 group_vo_list.append(group_vo)
             return group_vo_list
@@ -94,6 +98,7 @@ class ServerExtension:
             for group_style in self.group_style_list:
                 group = {}
                 group["name"] = group_style.name
+                group["style"] = group_style.style
                 items = []
                 for style in group_style.items:
                         print(style.name)
@@ -102,7 +107,8 @@ class ServerExtension:
                             image_data = base64.b64encode(image_file.read()).decode('utf-8')
                             items.append({
                         'filename': style.name,
-                        'data': image_data
+                        'data': image_data,
+                        'style': style.style,
                     })
                 group["items"] = items            
                 image_data_list.append(group)
@@ -120,6 +126,7 @@ class ServerExtension:
         client_id = post.get("client_id")
         # user_prompt = post.get("user_prompt")
         ref_name = post.get("ref_name")
+        style = post.get("style")
         # workflow_api = self.get_default_style().workflow #'workflow_api.json'
         workflow_api = None
         for style in self.group_style_list:
@@ -149,18 +156,16 @@ class ServerExtension:
 
         if image_name is not None:
             if ref_name == "":
-                # prompt = json.load(open(os.path.join('input', 'styles', 'workflow_api.json')))
+                
                 prompt = json.load(open(os.path.join('input', 'styles', workflow_api)))
                 prompt["12"]["inputs"]["image"] = image_name
             else:
-                # prompt = json.load(open(os.path.join('input', 'styles',ref_name.split('.')[0]+'.json')))
                 prompt = json.load(open(os.path.join('input', 'styles',workflow_api)))
                 prompt["12"]["inputs"]["image"] = 'styles/'+ ref_name
                 prompt['30']['inputs']['image'] = image_name
             prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
-            # if user_prompt != "":
-            #     prompt["6"]["inputs"]["text"] = user_prompt
-
+            
+            
             number = prompt_server.number
             prompt_server.number += 1
             
