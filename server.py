@@ -717,6 +717,7 @@ class PromptServer():
                 break 
 
 class StyleVO:
+        
         name = ""
         thumbnail = ""
         image = ""
@@ -729,6 +730,7 @@ class StyleVO:
 
 class GroupStyleVO:
     name = None
+    style = None
     items :list[StyleVO] = None
     def __init__(self, name):
         self.name = name
@@ -769,9 +771,9 @@ class ServerExtension:
             
 
     async def thumbnails(self, request,prompt_server:PromptServer):
-            group_style_list = await self.load_styles_json()
+            self.group_style_list = await self.load_styles_json()
             image_data_list = []
-            for group_style in group_style_list:
+            for group_style in self.group_style_list:
                 group = {}
                 group["name"] = group_style.name
                 items = []
@@ -788,15 +790,32 @@ class ServerExtension:
                 image_data_list.append(group)
             return web.json_response({'thumbnails': image_data_list})
 
-            
+    def get_default_style(self):
+        return self.group_style_list[0].items[0]
 
     async def post_digital_painting(self,request,prompt_server:PromptServer):
+        self.group_style_list = await self.load_styles_json()
         prompt_id = str(uuid.uuid4())
         print("got digital painting")
         post = await request.post()
         client_id = post.get("client_id")
         # user_prompt = post.get("user_prompt")
         ref_name = post.get("ref_name")
+        # workflow_api = self.get_default_style().workflow #'workflow_api.json'
+        workflow_api = None
+        for style in self.group_style_list:
+            for item in style.items:
+                if item.name == ref_name:
+                    workflow_api = item.workflow
+                    break
+        if workflow_api is None:
+            workflow_api = self.get_default_style().workflow
+            ref_name = self.get_default_style().name
+            
+            print("no style is selected, using default style's refname :",ref_name)
+            print("no style is selected, using default style's workflow :",workflow_api)
+        else:            
+            print("selected workflow_api :",workflow_api)
         # img = {'image': post.get("image"), 'overwrite': post.get("overwrite"), 'type': post.get("type"), 'subfolder': post.get("subfolder")}
         img = {'image': post.get("image")}
         upload_resp = await self.image_upload(img)
@@ -811,10 +830,12 @@ class ServerExtension:
 
         if image_name is not None:
             if ref_name == "":
-                prompt = json.load(open(os.path.join('input', 'styles', 'workflow_api.json')))
+                # prompt = json.load(open(os.path.join('input', 'styles', 'workflow_api.json')))
+                prompt = json.load(open(os.path.join('input', 'styles', workflow_api)))
                 prompt["12"]["inputs"]["image"] = image_name
             else:
-                prompt = json.load(open(os.path.join('input', 'styles',ref_name.split('.')[0]+'.json')))
+                # prompt = json.load(open(os.path.join('input', 'styles',ref_name.split('.')[0]+'.json')))
+                prompt = json.load(open(os.path.join('input', 'styles',workflow_api)))
                 prompt["12"]["inputs"]["image"] = 'styles/'+ ref_name
                 prompt['30']['inputs']['image'] = image_name
             prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)

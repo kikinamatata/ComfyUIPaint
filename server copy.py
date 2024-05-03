@@ -717,6 +717,7 @@ class PromptServer():
                 break 
 
 class StyleVO:
+        
         name = ""
         thumbnail = ""
         image = ""
@@ -729,6 +730,7 @@ class StyleVO:
 
 class GroupStyleVO:
     name = None
+    style = None
     items :list[StyleVO] = None
     def __init__(self, name):
         self.name = name
@@ -797,6 +799,13 @@ class ServerExtension:
         client_id = post.get("client_id")
         # user_prompt = post.get("user_prompt")
         ref_name = post.get("ref_name")
+        workflow_api = 'workflow_api.json'
+        for style in self.group_style_list:
+            for item in style.items:
+                if item.name == ref_name:
+                    workflow_api = item.workflow
+                    break
+        print("workflow_api",workflow_api)
         # img = {'image': post.get("image"), 'overwrite': post.get("overwrite"), 'type': post.get("type"), 'subfolder': post.get("subfolder")}
         img = {'image': post.get("image")}
         upload_resp = await self.image_upload(img)
@@ -811,10 +820,12 @@ class ServerExtension:
 
         if image_name is not None:
             if ref_name == "":
-                prompt = json.load(open(os.path.join('input', 'styles', 'workflow_api.json')))
+                # prompt = json.load(open(os.path.join('input', 'styles', 'workflow_api.json')))
+                prompt = json.load(open(os.path.join('input', 'styles', workflow_api)))
                 prompt["12"]["inputs"]["image"] = image_name
             else:
-                prompt = json.load(open(os.path.join('input', 'styles',ref_name.split('.')[0]+'.json')))
+                # prompt = json.load(open(os.path.join('input', 'styles',ref_name.split('.')[0]+'.json')))
+                prompt = json.load(open(os.path.join('input', 'styles',workflow_api)))
                 prompt["12"]["inputs"]["image"] = 'styles/'+ ref_name
                 prompt['30']['inputs']['image'] = image_name
             prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
