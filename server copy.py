@@ -523,6 +523,7 @@ class PromptServer():
                     outputs_to_execute = valid[2]
                     self.prompt_queue.put((number, prompt_id, prompt, extra_data, outputs_to_execute))
                     response = {"prompt_id": prompt_id, "number": number, "node_errors": valid[3]}
+                    print("prompt response:", response)
                     return web.json_response(response)
                 else:
                     print("invalid prompt:", valid[1])
@@ -691,8 +692,32 @@ class PromptServer():
 
         return json_data
 
+    def task_done_update_server_extension(self,prompt_id,outputs,status):
+        # this prompt 1 is prompt id
+            # outputs  filename is image file name
+            #             { 
+            #     "29": {"images": [{"filename": "digi_paint_00003_.png", "subfolder": "", "type": "output"}]},
+            #     "21": {"images": [{"filename": "digi_paint_00003_.png", "subfolder": "", "type": "output"}]}
+            # } 
+        file_name = ""    
+        for key,value in outputs.items():
+            for image in value["images"]:
+                    file_name = image["filename"]
+                    print("filename",file_name)
+                    break
+                    
+        full_file_path = os.path.join(folder_paths.get_output_directory(), file_name)
+        print("full path", full_file_path)
+            
+                        
+        server_extension = ServerExtension()
+        for prompt in server_extension.prompt_list:
+            if prompt.prompt_id == prompt_id:
+                prompt.output_image = full_file_path
+                break 
 
 class StyleVO:
+        
         name = ""
         thumbnail = ""
         image = ""
@@ -705,6 +730,7 @@ class StyleVO:
 
 class GroupStyleVO:
     name = None
+    style = None
     items :list[StyleVO] = None
     def __init__(self, name):
         self.name = name
@@ -744,20 +770,6 @@ class ServerExtension:
 
             
 
-
-            styles = []
-            # for style in style_list_json:
-            for style in style_list_json:
-                style_name = style["name"]
-                style_thumbnail = style["thumbnail"]
-                style_image = style["image"]
-                style_vo = StyleVO(style_name, style_thumbnail, style_image)
-                styles.append(style_vo)
-            print("loaded styles",style_list_json)
-
-            return styles
-            
-
     async def thumbnails(self, request,prompt_server:PromptServer):
             group_style_list = await self.load_styles_json()
             image_data_list = []
@@ -778,80 +790,47 @@ class ServerExtension:
                 image_data_list.append(group)
             return web.json_response({'thumbnails': image_data_list})
 
-            styles = await self.load_styles_json()
-            image_data_list = []
-            for style in styles:
-                print(style.name)
-                file_path = os.path.join(style.thumbnail)
-                with open(file_path, 'rb') as image_file:
-                        image_data = base64.b64encode(image_file.read()).decode('utf-8')
-                        image_data_list.append({
-                    'filename': style.name,
-                    'data': image_data
-                })
-            return web.json_response({'thumbnails': image_data_list})
-
-
-            # path = os.path.join(folder_paths.get_input_directory(), "thumbnails")
-            path = os.path.join('extension', 'input', "thumbnails")
-            if not os.path.exists(path):
-                return web.Response(status=404)
             
-            image_data_list = []
-            for filename in os.listdir(path):
-                if filename.endswith(('.jpg', '.jpeg', '.png')):
-                    file_path = os.path.join(path, filename)
-                    with open(file_path, 'rb') as image_file:
-                        image_data = base64.b64encode(image_file.read()).decode('utf-8')
-                        image_data_list.append({
-                    'filename': filename,
-                    'data': image_data
-                })
-            
-            return web.json_response({'thumbnails': image_data_list})
 
     async def post_digital_painting(self,request,prompt_server:PromptServer):
-        # data = {
-        #     "client_id": self.client_id,
-        #     "user_prompt": '',
-        #     "overwrite":None,
-        #     "subfolder":"",
-        #     "ref_name":ref_name,
-        #     "type":None
-        #     }
-        # print(data)
-        # files = {"image":open(image_path, 'rb')}
-        
         prompt_id = str(uuid.uuid4())
         print("got digital painting")
         post = await request.post()
         client_id = post.get("client_id")
-        user_prompt = "" #post.get("user_prompt")
+        # user_prompt = post.get("user_prompt")
         ref_name = post.get("ref_name")
-        #img = {'image': post.get("image"), 'overwrite': post.get("overwrite"), 'type': post.get("type"), 'subfolder': post.get("subfolder")}
-        img = {'image': post.get("image"), 'overwrite': None, 'type':None, 'subfolder':""}
-        
-        resp = await self.image_upload(img)
-        input_filepath = resp['filepath']
+        workflow_api = 'workflow_api.json'
+        for style in self.group_style_list:
+            for item in style.items:
+                if item.name == ref_name:
+                    workflow_api = item.workflow
+                    break
+        print("workflow_api",workflow_api)
+        # img = {'image': post.get("image"), 'overwrite': post.get("overwrite"), 'type': post.get("type"), 'subfolder': post.get("subfolder")}
+        img = {'image': post.get("image")}
+        upload_resp = await self.image_upload(img)
+        input_filepath = upload_resp['filepath']
 
-        if resp == 400:
+        if upload_resp == 400:
             return web.json_response({"error":"Image Upload Failed"},status=400)
         
-        image_name = resp["name"]
+        image_name = upload_resp["name"]
         response = {}
-        response["image"]=resp
+        response["image"]=upload_resp
 
         if image_name is not None:
             if ref_name == "":
-                prompt = json.load(open(os.path.join('input', 'styles', 'workflow_api.json')))
+                # prompt = json.load(open(os.path.join('input', 'styles', 'workflow_api.json')))
+                prompt = json.load(open(os.path.join('input', 'styles', workflow_api)))
                 prompt["12"]["inputs"]["image"] = image_name
             else:
-                prompt = json.load(open(os.path.join('input', 'styles',ref_name.split('.')[0]+'.json')))
-                prompt["12"]["inputs"]["image"] = "styles/" + ref_name
+                # prompt = json.load(open(os.path.join('input', 'styles',ref_name.split('.')[0]+'.json')))
+                prompt = json.load(open(os.path.join('input', 'styles',workflow_api)))
+                prompt["12"]["inputs"]["image"] = 'styles/'+ ref_name
                 prompt['30']['inputs']['image'] = image_name
             prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
-            if user_prompt != "":
-                prompt["6"]["inputs"]["text"] = user_prompt
+            # if user_prompt != "":
+            #     prompt["6"]["inputs"]["text"] = user_prompt
 
             number = prompt_server.number
             prompt_server.number += 1
@@ -876,18 +855,21 @@ class ServerExtension:
     
     async def image_upload(self,img, image_save_function=None):
         image = img["image"]
-        overwrite = img["overwrite"]
+        overwrite = "false" # img["overwrite"]
 
-        image_upload_type = img["type"]
-        upload_dir, image_upload_type = self.get_dir_by_type(image_upload_type)
+        # image_upload_type = img["type"]
+        upload_dir = folder_paths.get_input_directory()
+        image_upload_type = "input"
+        # upload_dir, image_upload_type = self.get_dir_by_type(image_upload_type)
 
         if image and image.file:
             filename = image.filename
             if not filename:
                 return 400
 
-            subfolder = img["subfolder"]
-            full_output_folder = os.path.join(upload_dir, os.path.normpath(subfolder))
+            # subfolder = img["subfolder"]
+            # full_output_folder = os.path.join(upload_dir, os.path.normpath(subfolder))
+            full_output_folder = os.path.join(upload_dir)
             filepath = os.path.abspath(os.path.join(full_output_folder, filename))
 
             if os.path.commonpath((upload_dir, filepath)) != upload_dir:
@@ -896,26 +878,18 @@ class ServerExtension:
             if not os.path.exists(full_output_folder):
                 os.makedirs(full_output_folder)
 
+            #  to avoid overwriting the fie
             split = os.path.splitext(filename)
+            i = 1
+            while os.path.exists(filepath):
+                filename = f"{split[0]} ({i}){split[1]}"
+                filepath = os.path.join(full_output_folder, filename)
+                i += 1
 
-            if overwrite is not None and (overwrite == "true" or overwrite == "1"):
-                pass
-            else:
-                i = 1
-                while os.path.exists(filepath):
-                    filename = f"{split[0]} ({i}){split[1]}"
-                    filepath = os.path.join(full_output_folder, filename)
-                    i += 1
-
-            if image_save_function is not None:
-                image_save_function(image, post, filepath)
-            else:
-                with open(filepath, "wb") as f:
-                    f.write(image.file.read())
+            with open(filepath, "wb") as f:
+                f.write(image.file.read())
             print('image uploaded at',filepath)
-            resp_json = {"name" : filename, "subfolder": subfolder, "type": image_upload_type,'filepath':filepath}
-            print("upload image response json",resp_json)
-            return resp_json
+            return {"name" : filename, "type": image_upload_type,'filepath':filepath}
         else:
             return 400
 
@@ -925,52 +899,24 @@ class ServerExtension:
         for prompt in self.prompt_list:
             if prompt.prompt_id == prompt_id:
                 os.remove(prompt.input_image)
-                self.prompt_list.remove(prompt)
+                print('Removed input image',prompt.input_image)
+                if os.path.isfile(prompt.output_image):
+                    with open(prompt.output_image, 'rb') as image_file:
+                        image_data = base64.b64encode(image_file.read()).decode('utf-8')
+                        response_data = {
+                            'filename': prompt.prompt_id,
+                            'data': image_data
+                        }
+                    os.remove(prompt.output_image)
+                    
+                    print('Removed output image',prompt.output_image)
+                    # end
+                    self.prompt_list.remove(prompt)
+                    print('Done : view extension image response filename and data')
+                    return web.json_response(response_data)
                 break
-        
-        print('view extension 1')        
-        if "filename" in request.rel_url.query:
-            filename = request.rel_url.query["filename"]
-            filename,output_dir = folder_paths.annotated_filepath(filename)
-            
-            # validation for security: prevent accessing arbitrary path
-            if filename[0] == '/' or '..' in filename:
-                print('view extension 2')
-                return web.Response(status=400)
-
-            if output_dir is None:
-                type = request.rel_url.query.get("type", "output")
-                output_dir = folder_paths.get_directory_by_type(type)
-
-            if output_dir is None:
-                print('view extension 3')
-                return web.Response(status=400)
-
-            if "subfolder" in request.rel_url.query:
-                full_output_dir = os.path.join(output_dir, request.rel_url.query["subfolder"])
-                if os.path.commonpath((os.path.abspath(full_output_dir), output_dir)) != output_dir:
-                    print('view extension 4')
-                    return web.Response(status=403)
-                output_dir = full_output_dir
-
-            filename = os.path.basename(filename)
-            file = os.path.join(output_dir, filename)
-
-            if os.path.isfile(file):
-                with open(file, 'rb') as image_file:
-                    image_data = base64.b64encode(image_file.read()).decode('utf-8')
-                    response_data = {
-                        'filename': filename,
-                        'data': image_data
-                    }
-                os.remove(file)
-                print('file removed after generation :',file)
-                # end
-                print('view extension 5')
-                #print('response data',response_data)
-                return web.json_response(response_data)
-
         return web.Response(status=404)
+       
 
     def get_dir_by_type(self,dir_type):
         if dir_type is None:
