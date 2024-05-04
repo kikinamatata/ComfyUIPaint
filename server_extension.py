@@ -162,7 +162,7 @@ class ServerExtension:
             #     prompt = json.load(open(os.path.join('input', 'styles', workflow_api)))
             #     prompt["12"]["inputs"]["image"] = image_name
             # else:
-            prompt = json.load(open(os.path.join('input', 'styles',styleVO.workflow)))
+            prompt = json.load(open(os.path.join('input',styleVO.workflow)))
             print("style name :",styleVO.style)
             if styleVO.style == STYLE_FACE_SWAP:
                 print("inside face swap prompt update")
