@@ -32,6 +32,8 @@ import comfy.utils
 import comfy.model_management
 
 from app.user_manager import UserManager
+STYLE_DIGITAL_PAINTING = 'digital_painting'
+STYLE_FACE_SWAP = 'face_swap'
 
 class StyleVO:
         
@@ -124,25 +126,22 @@ class ServerExtension:
         print("got digital painting")
         post = await request.post()
         client_id = post.get("client_id")
-        # user_prompt = post.get("user_prompt")
         ref_name = post.get("ref_name")
         style = post.get("style")
-        # workflow_api = self.get_default_style().workflow #'workflow_api.json'
-        workflow_api = None
+        styleVO:StyleVO = None
+        
         for style in self.group_style_list:
             for item in style.items:
                 if item.name == ref_name:
-                    workflow_api = item.workflow
+                    styleVO = item
                     break
-        if workflow_api is None:
-            workflow_api = self.get_default_style().workflow
-            ref_name = self.get_default_style().name
-            
-            print("no style is selected, using default style's refname :",ref_name)
-            print("no style is selected, using default style's workflow :",workflow_api)
+
+        if styleVO is None:
+            styleVO = self.get_default_style()
+            print("no style is selected, using default style's refname :",styleVO.name)
+            print("no style is selected, using default style's workflow :",styleVO.workflow)
         else:            
-            print("selected workflow_api :",workflow_api)
-        # img = {'image': post.get("image"), 'overwrite': post.get("overwrite"), 'type': post.get("type"), 'subfolder': post.get("subfolder")}
+            print("selected workflow_api :",styleVO.workflow)
         img = {'image': post.get("image")}
         upload_resp = await self.image_upload(img)
         input_filepath = upload_resp['filepath']
@@ -155,16 +154,23 @@ class ServerExtension:
         response["image"]=upload_resp
 
         if image_name is not None:
-            if ref_name == "":
-                
-                prompt = json.load(open(os.path.join('input', 'styles', workflow_api)))
-                prompt["12"]["inputs"]["image"] = image_name
-            else:
-                prompt = json.load(open(os.path.join('input', 'styles',workflow_api)))
-                prompt["12"]["inputs"]["image"] = 'styles/'+ ref_name
-                prompt['30']['inputs']['image'] = image_name
-            prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
             
+            # if ref_name == "":
+                
+            #     prompt = json.load(open(os.path.join('input', 'styles', workflow_api)))
+            #     prompt["12"]["inputs"]["image"] = image_name
+            # else:
+            prompt = json.load(open(os.path.join('input', 'styles',styleVO.workflow)))
+            print("style name :",styleVO.style)
+            if styleVO.style == STYLE_DIGITAL_PAINTING:
+                print('inside digiital painting prompt update')
+                prompt["12"]["inputs"]["image"] = 'styles/'+ styleVO.name
+                prompt['30']['inputs']['image'] = image_name
+                prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
+            else:
+                print("inside face swap prompt update")
+                prompt["2"]["inputs"]["image"] = 'styles/'+ styleVO.name
+                prompt["3"]["inputs"]["image"] = image_name
             
             number = prompt_server.number
             prompt_server.number += 1
