@@ -1,29 +1,67 @@
 [
    { 
-      "name":"dragon",
+      "name":"Digital Painting",
       "style":"digital_painting",
       "items":
       [
          {
-         "name": "digital_painting.jpg",
-         "thumbnail": "input/styles/digital_painting_thumbnail.jpg",
-         "image": "input/styles/digital_painting.jpg",
-         "workflow":"digital_painting.json"
+            "name": "dg_digital_painting",
+            "thumbnail": "styles/digital_painting_thumbnail.png",
+            "image": "styles/digital_painting.png",
+            "workflow":"digital_painting.json"
+         },
+          {
+            "name": "dg_digital_painting",
+            "thumbnail": "styles/digital_painting_thumbnail.png",
+            "image": "styles/digital_painting.png",
+            "workflow":"digital_painting.json"
+         },
+          {
+            "name": "dg_digital_painting",
+            "thumbnail": "styles/digital_painting_thumbnail.png",
+            "image": "styles/digital_painting.png",
+            "workflow":"digital_painting.json"
          },
          {
-         "name": "dragon_girl.png",
-         "thumbnail": "input/styles/dragon_girl_thumbnail.png",
-         "image": "input/styles/dragon_girl.png",
-         "workflow":"dragon_girl.json"
-         },
-         {
-         "name": "dragon_man.jpg",
-         "thumbnail": "input/styles/dragon_man_thumbnail.jpg",
-         "image": "input/styles/dragon_man.jpg",
-         "workflow":"dragon_man.json"
+           "name": "dg_digital_painting",
+           "thumbnail": "styles/digital_painting_thumbnail.png",
+           "image": "styles/digital_painting.png",
+           "workflow":"digital_painting.json"
          }
       ]
    },
+   { 
+      "name":"Scene Swap",
+      "style":"scene_swap",
+      "items":
+      [
+         
+         {
+            "name": "sc_dragon_girl",
+            "thumbnail": "styles/dragon_girl_thumbnail.png",
+            "image": "styles/dragon_girl.png",
+            "workflow":"dragon_girl.json"
+         },
+         {
+            "name": "sc_dragon_man",
+            "thumbnail": "styles/dragon_man_thumbnail.png",
+            "image": "styles/dragon_man.png",
+            "workflow":"dragon_man.json"
+         },
+         {
+            "name": "sc_dragon_girl",
+            "thumbnail": "styles/dragon_girl_thumbnail.png",
+            "image": "styles/dragon_girl.png",
+            "workflow":"dragon_girl.json"
+         },
+         {
+            "name": "sc_dragon_man",
+            "thumbnail": "styles/dragon_man_thumbnail.png",
+            "image": "styles/dragon_man.png",
+            "workflow":"dragon_man.json"
+         }
+      ]
+   }, 
    { 
       "name":"Face Swap",
       "style":"face_swap",
@@ -31,72 +69,30 @@
       "items":
       [
          {
-         "name": "dragon_girl_fast.png",
-         "thumbnail": "input/styles/dragon_girl_fast_thumbnail.png",
-         "image": "input/styles/dragon_girl_fast.png",
-         "workflow":"dragon_girl_fast.json"
+            "name": "fc_dragon_girl_fast",
+            "thumbnail": "styles/dragon_girl_fast_thumbnail.png",
+            "image": "styles/dragon_girl_fast.png",
+            "workflow":"face_swap.json"
          },
          {
-            "name": "dragon_girl_fast.png",
-            "thumbnail": "input/styles/dragon_girl_fast_thumbnail.png",
-            "image": "input/styles/dragon_girl_fast.png",
-            "workflow":"dragon_girl_fast.json"
+            "name": "fc_dragon_man",
+            "thumbnail": "styles/dragon_man_thumbnail.png",
+            "image": "styles/dragon_man.png",
+            "workflow":"face_swap.json"
          },
          {
-            "name": "dragon_girl_fast.png",
-            "thumbnail": "input/styles/dragon_girl_fast_thumbnail.png",
-            "image": "input/styles/dragon_girl_fast.png",
-            "workflow":"dragon_girl_fast.json"
+            "name": "fc_dragon_girl_fast",
+            "thumbnail": "styles/dragon_girl_fast_thumbnail.png",
+            "image": "styles/dragon_girl_fast.png",
+            "workflow":"face_swap.json"
+         },
+         {
+            "name": "fc_dragon_man",
+            "thumbnail": "styles/dragon_man_thumbnail.png",
+            "image": "styles/dragon_man.png",
+            "workflow":"face_swap.json"
          }
          
-      ]
-   },
-   { 
-      "name":"dragon3",
-      "items":
-      [
-         {
-         "name": "digital_painting.jpg",
-         "thumbnail": "input/styles/digital_painting_thumbnail.jpg",
-         "image": "input/styles/digital_painting.jpg",
-         "workflow":"digital_painting.json"
-         },
-         {
-         "name": "dragon_girl.png",
-         "thumbnail": "input/styles/dragon_girl_thumbnail.png",
-         "image": "input/styles/dragon_girl.png",
-         "workflow":"dragon_girl.json"
-         },
-         {
-         "name": "dragon_man.jpg",
-         "thumbnail": "input/styles/dragon_man_thumbnail.jpg",
-         "image": "input/styles/dragon_man.jpg",
-         "workflow":"dragon_man.json"
-         }
-      ]
-   },
-   { 
-      "name":"dragon4",
-      "items":
-      [
-         {
-         "name": "digital_painting.jpg",
-         "thumbnail": "input/styles/digital_painting_thumbnail.jpg",
-         "image": "input/styles/digital_painting.jpg",
-         "workflow":"digital_painting.json"
-         },
-         {
-         "name": "dragon_girl.png",
-         "thumbnail": "input/styles/dragon_girl_thumbnail.png",
-         "image": "input/styles/dragon_girl.png",
-         "workflow":"dragon_girl.json"
-         },
-         {
-         "name": "dragon_man.jpg",
-         "thumbnail": "input/styles/dragon_man_thumbnail.jpg",
-         "image": "input/styles/dragon_man.jpg",
-         "workflow":"dragon_man.json"
-         }
       ]
    }
 ]

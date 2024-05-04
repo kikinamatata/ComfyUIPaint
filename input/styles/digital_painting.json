@@ -1,10 +1,10 @@
 {
   "3": {
     "inputs": {
-      "seed": 2674941754,
+      "seed": 534915495954691,
       "steps": 20,
       "cfg": 7,
-      "sampler_name": "dpmpp_2m",
+      "sampler_name": "dpmpp_3m_sde_gpu",
       "scheduler": "karras",
       "denoise": 1,
       "model": [
@@ -129,12 +129,12 @@
   },
   "12": {
     "inputs": {
-      "image": "244265560_10227611884548979_6104897418530269593_n.jpg",
+      "image": "Santhakumar_portrait.jpg",
       "upload": "image"
     },
     "class_type": "LoadImage",
     "_meta": {
-      "title": "Reference Image"
+      "title": "Load Image"
     }
   },
   "13": {
@@ -237,12 +237,12 @@
   },
   "30": {
     "inputs": {
-      "image": "04STEVEJOBS1-superJumbo-square.jpeg",
+      "image": "Santhakumar_portrait.jpg",
       "upload": "image"
     },
     "class_type": "LoadImage",
     "_meta": {
-      "title": "Face Image"
+      "title": "Load Image"
     }
   }
 }

@@ -151,18 +151,6 @@
       "title": "PiDiNet Soft-Edge Lines"
     }
   },
-  "26": {
-    "inputs": {
-      "images": [
-        "13",
-        0
-      ]
-    },
-    "class_type": "PreviewImage",
-    "_meta": {
-      "title": "Preview Image"
-    }
-  },
   "27": {
     "inputs": {
       "enabled": true,

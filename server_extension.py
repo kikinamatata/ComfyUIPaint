@@ -33,6 +33,7 @@ import comfy.model_management
 
 from app.user_manager import UserManager
 STYLE_DIGITAL_PAINTING = 'digital_painting'
+STYLE_SCENE_SWAP = 'scene_swap'
 STYLE_FACE_SWAP = 'face_swap'
 
 class StyleVO:
@@ -104,7 +105,8 @@ class ServerExtension:
                 items = []
                 for style in group_style.items:
                         print(style.name)
-                        file_path = os.path.join(style.thumbnail)
+                        #folder_paths.get_input_directory()
+                        file_path =  os.path.join('input',style.thumbnail)
                         with open(file_path, 'rb') as image_file:
                             image_data = base64.b64encode(image_file.read()).decode('utf-8')
                             items.append({
@@ -162,19 +164,24 @@ class ServerExtension:
             # else:
             prompt = json.load(open(os.path.join('input', 'styles',styleVO.workflow)))
             print("style name :",styleVO.style)
-            if styleVO.style == STYLE_DIGITAL_PAINTING:
+            if styleVO.style == STYLE_FACE_SWAP:
+                print("inside face swap prompt update")
+                prompt["2"]["inputs"]["image"] = styleVO.image #'styles/'+ styleVO.name
+                prompt["3"]["inputs"]["image"] =  image_name
+            elif styleVO.style == STYLE_DIGITAL_PAINTING:
                 print('inside digiital painting prompt update')
-                prompt["12"]["inputs"]["image"] = 'styles/'+ styleVO.name
+                prompt["12"]["inputs"]["image"] = image_name #'styles/'+ styleVO.name
                 prompt['30']['inputs']['image'] = image_name
                 prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
             else:
-                print("inside face swap prompt update")
-                prompt["2"]["inputs"]["image"] = 'styles/'+ styleVO.name
-                prompt["3"]["inputs"]["image"] = image_name
+                print('inside swap scene prompt update')
+                prompt["12"]["inputs"]["image"] = styleVO.image #'styles/'+ styleVO.name
+                prompt['30']['inputs']['image'] = image_name
+                prompt["3"]["inputs"]["seed"] = random.randint(1, 1125899906842600)
             
             number = prompt_server.number
             prompt_server.number += 1
-            
+            #print('prompt ',prompt)
             valid = execution.validate_prompt(prompt)
             extra_data ={"client_id": client_id}
             if valid[0]:
