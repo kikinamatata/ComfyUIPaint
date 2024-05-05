@@ -32,5 +32,104 @@
          }
          
       ]
+   },   
+   { 
+      "name":"Stylish",
+      "style":"face_swap",
+      
+      "items":
+      [
+         {
+            "name": "fc_dragon_girl_fast",
+            "thumbnail": "styles/fantasy/dragon_girl_fast_thumbnail.png",
+            "image": "styles/fantasy/dragon_girl_fast.png",
+            "workflow":"styles/face_swap.json"
+         },
+         {
+            "name": "fc_dragon_man",
+            "thumbnail": "styles/fantasy/dragon_man_thumbnail.png",
+            "image": "styles/fantasy/dragon_man.png",
+            "workflow":"styles/face_swap.json"
+         },
+         {
+            "name": "fc_dragon_girl_fast",
+            "thumbnail": "styles/fantasy/dragon_girl_fast_thumbnail.png",
+            "image": "styles/fantasy/dragon_girl_fast.png",
+            "workflow":"styles/face_swap.json"
+         },
+         {
+            "name": "fc_dragon_man",
+            "thumbnail": "styles/fantasy/dragon_man_thumbnail.png",
+            "image": "styles/fantasy/dragon_man.png",
+            "workflow":"styles/face_swap.json"
+         }
+         
+      ]
+   },
+   { 
+      "name":"Elegant",
+      "style":"face_swap",
+      
+      "items":
+      [
+         {
+            "name": "fc_dragon_girl_fast",
+            "thumbnail": "styles/fantasy/dragon_girl_fast_thumbnail.png",
+            "image": "styles/fantasy/dragon_girl_fast.png",
+            "workflow":"styles/face_swap.json"
+         },
+         {
+            "name": "fc_dragon_man",
+            "thumbnail": "styles/fantasy/dragon_man_thumbnail.png",
+            "image": "styles/fantasy/dragon_man.png",
+            "workflow":"styles/face_swap.json"
+         },
+         {
+            "name": "fc_dragon_girl_fast",
+            "thumbnail": "styles/fantasy/dragon_girl_fast_thumbnail.png",
+            "image": "styles/fantasy/dragon_girl_fast.png",
+            "workflow":"styles/face_swap.json"
+         },
+         {
+            "name": "fc_dragon_man",
+            "thumbnail": "styles/fantasy/dragon_man_thumbnail.png",
+            "image": "styles/fantasy/dragon_man.png",
+            "workflow":"styles/face_swap.json"
+         }
+         
+      ]
+   },
+   { 
+      "name":"Retro",
+      "style":"face_swap",
+      
+      "items":
+      [
+         {
+            "name": "fc_dragon_girl_fast",
+            "thumbnail": "styles/fantasy/dragon_girl_fast_thumbnail.png",
+            "image": "styles/fantasy/dragon_girl_fast.png",
+            "workflow":"styles/face_swap.json"
+         },
+         {
+            "name": "fc_dragon_man",
+            "thumbnail": "styles/fantasy/dragon_man_thumbnail.png",
+            "image": "styles/fantasy/dragon_man.png",
+            "workflow":"styles/face_swap.json"
+         },
+         {
+            "name": "fc_dragon_girl_fast",
+            "thumbnail": "styles/fantasy/dragon_girl_fast_thumbnail.png",
+            "image": "styles/fantasy/dragon_girl_fast.png",
+            "workflow":"styles/face_swap.json"
+         },
+         {
+            "name": "fc_dragon_man",
+            "thumbnail": "styles/fantasy/dragon_man_thumbnail.png",
+            "image": "styles/fantasy/dragon_man.png",
+            "workflow":"styles/face_swap.json"
+         }
+         
+      ]
    }
 ]
