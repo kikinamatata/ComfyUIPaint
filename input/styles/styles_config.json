@@ -7,25 +7,25 @@
       "items":
       [
          {
-            "name": "fc_dragon_girl_fast",
+            "name": "fy_dragon_girl_fast",
             "thumbnail": "styles/fantasy/dragon_girl_fast_thumbnail.png",
             "image": "styles/fantasy/dragon_girl_fast.png",
             "workflow":"styles/face_swap.json"
          },
          {
-            "name": "fc_dragon_man",
+            "name": "fy_dragon_man",
             "thumbnail": "styles/fantasy/dragon_man_thumbnail.png",
             "image": "styles/fantasy/dragon_man.png",
             "workflow":"styles/face_swap.json"
          },
          {
-            "name": "fc_dragon_girl_fast",
+            "name": "fy_dragon_girl_fast",
             "thumbnail": "styles/fantasy/dragon_girl_fast_thumbnail.png",
             "image": "styles/fantasy/dragon_girl_fast.png",
             "workflow":"styles/face_swap.json"
          },
          {
-            "name": "fc_dragon_man",
+            "name": "fy_dragon_man",
             "thumbnail": "styles/fantasy/dragon_man_thumbnail.png",
             "image": "styles/fantasy/dragon_man.png",
             "workflow":"styles/face_swap.json"
@@ -34,33 +34,33 @@
       ]
    },   
    { 
-      "name":"Stylish",
+      "name":"Futuristic",
       "style":"face_swap",
       
       "items":
       [
          {
-            "name": "fc_dragon_girl_fast",
-            "thumbnail": "styles/fantasy/dragon_girl_fast_thumbnail.png",
-            "image": "styles/fantasy/dragon_girl_fast.png",
+            "name": "fc_futuristic_kk",
+            "thumbnail": "styles/futuristic/futuristic_kk_t.png",
+            "image": "styles/futuristic/futuristic_kk.png",
             "workflow":"styles/face_swap.json"
          },
          {
-            "name": "fc_dragon_man",
-            "thumbnail": "styles/fantasy/dragon_man_thumbnail.png",
-            "image": "styles/fantasy/dragon_man.png",
+            "name": "fc_futuristic_kk2",
+            "thumbnail": "styles/futuristic/futuristic_kk2_t.png",
+            "image": "styles/futuristic/futuristic_kk2.png",
             "workflow":"styles/face_swap.json"
          },
          {
-            "name": "fc_dragon_girl_fast",
-            "thumbnail": "styles/fantasy/dragon_girl_fast_thumbnail.png",
-            "image": "styles/fantasy/dragon_girl_fast.png",
+            "name": "fc_futuristic_sk",
+            "thumbnail": "styles/futuristic/futuristic_sk_t.png",
+            "image": "styles/futuristic/futuristic_sk.png",
             "workflow":"styles/face_swap.json"
          },
          {
-            "name": "fc_dragon_man",
-            "thumbnail": "styles/fantasy/dragon_man_thumbnail.png",
-            "image": "styles/fantasy/dragon_man.png",
+            "name": "fc_futuristic_sk2",
+            "thumbnail": "styles/futuristic/futuristic_sk2_t.png",
+            "image": "styles/futuristic/futuristic_sk2.png",
             "workflow":"styles/face_swap.json"
          }
          
