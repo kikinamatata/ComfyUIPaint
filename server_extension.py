@@ -71,8 +71,12 @@ class ServerExtension:
     prompt_list:list[PromptVO] = []
     group_style_list:list[GroupStyleVO] = []
 
-    def __init__(self):
-        ServerExtension.instance = self
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(ServerExtension, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
 
     async def load_styles_json(self)->list[GroupStyleVO]:
         with open(os.path.join('input','styles', 'styles_config.json')) as f:
@@ -122,6 +126,17 @@ class ServerExtension:
     def get_default_style(self):
         return self.group_style_list[0].items[0]
 
+    def get_style_by_name(self,ref_name) -> StyleVO:
+
+        for group in self.group_style_list:
+            for style in group.items:
+                if style.name == ref_name:
+                    return style
+        styleVO = self.get_default_style()
+        print("no style is selected, using default style's refname :",styleVO.name)
+        print("no style is selected, using default style's workflow :",styleVO.workflow)
+        return styleVO
+    
     async def post_digital_painting(self,request,prompt_server):
         self.group_style_list = await self.load_styles_json()
         prompt_id = str(uuid.uuid4())
@@ -129,21 +144,9 @@ class ServerExtension:
         post = await request.post()
         client_id = post.get("client_id")
         ref_name = post.get("ref_name")
-        style = post.get("style")
-        styleVO:StyleVO = None
+        styleVO:StyleVO = self.get_style_by_name(ref_name)
         
-        for style in self.group_style_list:
-            for item in style.items:
-                if item.name == ref_name:
-                    styleVO = item
-                    break
-
-        if styleVO is None:
-            styleVO = self.get_default_style()
-            print("no style is selected, using default style's refname :",styleVO.name)
-            print("no style is selected, using default style's workflow :",styleVO.workflow)
-        else:            
-            print("selected workflow_api :",styleVO.workflow)
+        print("selected workflow_api :",styleVO.workflow)
         img = {'image': post.get("image")}
         upload_resp = await self.image_upload(img)
         input_filepath = upload_resp['filepath']
@@ -157,11 +160,6 @@ class ServerExtension:
 
         if image_name is not None:
             
-            # if ref_name == "":
-                
-            #     prompt = json.load(open(os.path.join('input', 'styles', workflow_api)))
-            #     prompt["12"]["inputs"]["image"] = image_name
-            # else:
             prompt = json.load(open(os.path.join('input',styleVO.workflow)))
             print("style name :",styleVO.style)
             if styleVO.style == STYLE_FACE_SWAP:
