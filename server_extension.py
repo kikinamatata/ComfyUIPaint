@@ -144,19 +144,24 @@ class ServerExtension:
         post = await request.post()
         client_id = post.get("client_id")
         ref_name = post.get("ref_name")
+        image = post.get("image")
         styleVO:StyleVO = self.get_style_by_name(ref_name)
-        
-        print("selected workflow_api :",styleVO.workflow)
-        img = {'image': post.get("image")}
-        upload_resp = await self.image_upload(img)
-        input_filepath = upload_resp['filepath']
 
-        if upload_resp == 400:
+        print("selected workflow_api :",styleVO.workflow)
+        # img = {'image': post.get("image")}
+        # image = post.get("image")
+        image_name,image_path = await self.image_upload_in_input_director(image)
+        if image_name is None:
             return web.json_response({"error":"Image Upload Failed"},status=400)
         
-        image_name = upload_resp["name"]
+        # input_filepath = upload_resp['filepath']
+
+        # if upload_resp == 400:
+        #     return web.json_response({"error":"Image Upload Failed"},status=400)
+        
+        # image_name = upload_resp["name"]
         response = {}
-        response["image"]=upload_resp
+        # response["image"]=upload_resp
 
         if image_name is not None:
             
@@ -184,7 +189,7 @@ class ServerExtension:
             extra_data ={"client_id": client_id}
             if valid[0]:
                 promptvo = PromptVO(prompt_id)
-                promptvo.input_image = input_filepath
+                promptvo.input_image = image_path
                 self.prompt_list.append(promptvo)
                 outputs_to_execute = valid[2]
                 # IMPORTANT
@@ -205,9 +210,9 @@ class ServerExtension:
             return web.json_response(response_json, status=response_status)
             return web.json_response({"error": "no client_id", "node_errors": []}, status=400)
     
-    async def image_upload(self,img):
-        image = img["image"]
-        overwrite = "false" # img["overwrite"]
+    async def image_upload_in_input_director(self,image):
+        # image = img["image"]
+        # image = image_data
 
         # image_upload_type = img["type"]
         upload_dir = folder_paths.get_input_directory()
@@ -241,8 +246,11 @@ class ServerExtension:
             with open(filepath, "wb") as f:
                 f.write(image.file.read())
             print('image uploaded at',filepath)
+            return filename,filepath
             return {"name" : filename, "type": image_upload_type,'filepath':filepath}
+        
         else:
+            return None,None
             return 400
 
     async def view_extention_image(self,request):
